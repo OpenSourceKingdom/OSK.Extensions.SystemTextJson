@@ -1,0 +1,53 @@
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+
+namespace OSK.Extensions.SystemTextJson.Common
+{
+    public static class Utf8JsonReaderExtensions
+    {
+        /// <summary>
+        /// Attempts to find a property that matches the provided property name and returns the associated value
+        /// </summary>
+        /// <param name="reader">The reader to read the json data from</param>
+        /// <param name="propertyName">The property name to seek</param>
+        /// <param name="copiedReader">The copied Utf8JsonReader at the point where the property was found, if it exists.</param>
+        /// <returns>True if the property is found, false if not.</returns>
+        /// <remarks>
+        /// Note 1: The reader that is used is not directly consumed as a copy is made prior to seek for the property.
+        /// This allows deserialization to continue as normal.
+        /// <br/><br/>
+        /// Note 2: The returned reader will be at the point of the property value for the consumer to read, if found.
+        /// </remarks>
+        public static bool TryFindPropertyValue(this Utf8JsonReader reader, string propertyName,
+            out Utf8JsonReader copiedReader)
+        {
+            copiedReader = reader;
+            if (reader.TokenType != JsonTokenType.StartObject)
+            {
+                return false;
+            }
+
+            var startingDepth = reader.CurrentDepth;
+            while (reader.TokenType != JsonTokenType.EndObject || reader.CurrentDepth != startingDepth)
+            {
+                reader.Read();
+                switch (reader.TokenType)
+                {
+                    case JsonTokenType.PropertyName:
+                        var currentPropertyName = reader.GetString();
+                        if (currentPropertyName == propertyName)
+                        {
+                            // Get to the property value for consumer read preference
+                            reader.Read();
+                            return true;
+                        }
+                        break;
+                }
+
+                reader.Skip();
+            }
+
+            return false;
+        }
+    }
+}
