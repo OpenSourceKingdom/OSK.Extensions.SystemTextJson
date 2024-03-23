@@ -21,13 +21,14 @@ namespace OSK.Extensions.SystemTextJson.Common
         public static bool TryFindPropertyValue(this Utf8JsonReader reader, string propertyName,
             out Utf8JsonReader copiedReader)
         {
+            // Copy original reader to prevent undesired token consumption
             copiedReader = reader;
-            if (reader.TokenType != JsonTokenType.StartObject)
+            if (copiedReader.TokenType != JsonTokenType.StartObject)
             {
                 return false;
             }
 
-            var startingDepth = reader.CurrentDepth;
+            var startingDepth = copiedReader.CurrentDepth;
             while (copiedReader.TokenType != JsonTokenType.EndObject || copiedReader.CurrentDepth != startingDepth)
             {
                 copiedReader.Read();
