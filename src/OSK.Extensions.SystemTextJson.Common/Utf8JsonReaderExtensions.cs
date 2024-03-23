@@ -28,23 +28,23 @@ namespace OSK.Extensions.SystemTextJson.Common
             }
 
             var startingDepth = reader.CurrentDepth;
-            while (reader.TokenType != JsonTokenType.EndObject || reader.CurrentDepth != startingDepth)
+            while (copiedReader.TokenType != JsonTokenType.EndObject || copiedReader.CurrentDepth != startingDepth)
             {
-                reader.Read();
-                switch (reader.TokenType)
+                copiedReader.Read();
+                switch (copiedReader.TokenType)
                 {
                     case JsonTokenType.PropertyName:
-                        var currentPropertyName = reader.GetString();
+                        var currentPropertyName = copiedReader.GetString();
                         if (currentPropertyName == propertyName)
                         {
-                            // Get to the property value for consumer read preference
-                            reader.Read();
+                            // Let the consumer read the current property value as they desire
+                            copiedReader.Read();
                             return true;
                         }
                         break;
                 }
 
-                reader.Skip();
+                copiedReader.Skip();
             }
 
             return false;
